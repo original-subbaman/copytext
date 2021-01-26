@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ClipBoardManager</string>
+    <string name="channel_name">CopyPasteNotificationChannel</string>
+    <string name="channel_description">Delivers notification on when the app\'s clipboard service is working or not.</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="item_selected_bg_color">#BDBDBD</string>
+    <string name="item_selected_text_color">#424242</string>
+</resources>
