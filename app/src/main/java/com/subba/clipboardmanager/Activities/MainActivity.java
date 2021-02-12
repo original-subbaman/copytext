@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.subba.clipboardmanager.Adapters.ClipsRecyclerAdapter;
 import com.subba.clipboardmanager.Adapters.FoldersRecyclerAdapter;
 import com.subba.clipboardmanager.Room.ClipboardItem;
@@ -45,57 +46,27 @@ public class MainActivity extends AppCompatActivity {
     public static ClipboardViewModel viewModel;
     private List<String> folderList;
     private String currentFolder = "Other";
-    private ActionMode mActionMode;
+    private Toolbar toolbar;
+    private BottomSheetBehavior bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
-        View view = binding.getRoot();
-        setContentView(view);
+        setContentView(binding.getRoot());
         mClips = new ArrayList<>();
         folderList = new ArrayList<>();
-        setSupportActionBar(findViewById(R.id.toolbar));
-        setUpNavigationDrawer();
-        setUpClipsRecyclerView();
-        ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(currentFolder);
+                ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
         viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(ClipboardViewModel.class);
         setUpRoomObservers();
-        setToolbarTitle(currentFolder);
+        setUpNavigationDrawer();
+        setUpClipsRecyclerView();
+        setUpBottomSheet();
     }
 
-    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback(){
-
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            MenuInflater menuInflater = mode.getMenuInflater();
-            menuInflater.inflate(R.menu.action_mode_menu, menu);
-            return true;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            getSupportActionBar().hide();
-            return false;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            switch(item.getItemId()) {
-                case R.id.option_add:
-                    Toast.makeText(MainActivity.this, "Option add selected", Toast.LENGTH_SHORT).show();
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mActionMode = null;
-            getSupportActionBar().show();
-        }
-    };
 
     private void setUpRoomObservers(){
         viewModel.getAllClipsForOtherFolder().observe(this, clips -> {
@@ -108,8 +79,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUpNavigationDrawer(){
-        setSupportActionBar(binding.toolbar);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar,
+       ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         binding.drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
@@ -127,10 +97,9 @@ public class MainActivity extends AppCompatActivity {
         mAdapter.setOnItemLongClickListener(new ClipsRecyclerAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(int position) {
-                if(mActionMode != null){
-                    return false;
+                if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 }
-                mActionMode = startSupportActionMode(mActionModeCallback);
                 ClipboardItem item = mAdapter.mClipList.get(position);
                 item.setSelected(!item.getSelected());
                 return item.getSelected();
@@ -145,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
         binding.folderListRecyclerView.setAdapter(mFolderAdapter);
     }
 
-    private void setToolbarTitle(String title){
-        binding.toolbar.setTitle(title);
+    private void setUpBottomSheet(){
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
-
 
     @Override
     public void onBackPressed() {
@@ -156,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
             binding.drawerLayout.closeDrawer(GravityCompat.START);
         }else{
             super.onBackPressed();
+        }
+
+        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
     }
 

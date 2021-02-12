@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
@@ -21,16 +22,26 @@ import java.util.List;
 
 public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdapter.ClipsViewHolder> {
 
-    public List<ClipboardItem> mClipList;
+    public  List<ClipboardItem> mClipList;
     private OnItemLongClickListener mLongClickListener;
+    private AdapterView.OnItemClickListener mItemClickListener;
     private List<Integer> mSelectedClipIdList;
+    private static boolean isSelectionEnabled = false;
 
     public interface OnItemLongClickListener{
         boolean onItemLongClick(int position);
     }
 
+    public interface OnItemClickListener{
+        void onItemClick(int position);
+    }
+
     public void setOnItemLongClickListener(OnItemLongClickListener listener){
         this.mLongClickListener = listener;
+    }
+
+    public void setOnItemClickListener(AdapterView.OnItemClickListener listener){
+        this.mItemClickListener = listener;
     }
 
     public ClipsRecyclerAdapter(ArrayList<ClipboardItem> list){
@@ -49,8 +60,39 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
     @Override
     public void onBindViewHolder(@NonNull ClipsViewHolder holder, int position) {
         ClipboardItem currentItem = mClipList.get(position);
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(mLongClickListener != null){
+                    if(!isSelectionEnabled){
+                        isSelectionEnabled = true;
+                        setClipSelected(position);
+                    }
+                }
+                return true;
+            }
+        });
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isSelectionEnabled){
+                    setClipSelected(position);
+                }else{
+                    setClipUnselected(position);
+                }
+            }
+        });
+
+        if(currentItem.getSelected()){
+            //change background
+        }else{
+            //do nothing
+        }
         holder.mText.setText(currentItem.getText());
         holder.mTime.setText(currentItem.getTime());
+
     }
 
     @Override
@@ -71,27 +113,19 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
             mText = itemView.findViewById(R.id.clip_text);
             mTime = itemView.findViewById(R.id.clip_time);
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if(listener != null){
-                        int pos = getAdapterPosition();
-                        if(pos != RecyclerView.NO_POSITION){
 
-                            if(listener.onItemLongClick(pos)){
-                                itemView.setBackgroundColor(Color.LTGRAY);
-                                mText.setTextColor(Color.DKGRAY);
-                                mTime.setTextColor(Color.DKGRAY);
-                            }else{
-                                itemView.setBackgroundColor(Color.WHITE);
-                                mText.setTextColor(Color.BLACK);
-                                mTime.setTextColor(Color.BLACK);
-                            }
-                        }
-                    }
-                    return true;
-                }
-            });
         }
     }
+
+    public void setClipSelected(int position){
+        mClipList.get(position).setSelected(true);
+        notifyItemChanged(position);
+    }
+
+    public void setClipUnselected(int position){
+        mClipList.get(position).setSelected(false);
+        notifyItemChanged(position);
+    }
+
+
 }
