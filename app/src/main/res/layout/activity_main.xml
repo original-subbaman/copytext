@@ -13,6 +13,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/purple_500"
             android:orientation="vertical">
 
             <androidx.appcompat.widget.Toolbar
@@ -20,15 +21,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/purple_500"
-                android:elevation="4dp"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="38sp"
+                android:text="12:00 PM"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp"
+                android:textColor="@color/white"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:text="13-02-2021"
+                android:paddingStart="12dp"
+                android:layout_marginBottom="20dp"
+                android:textColor="@color/white"
+                />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/clipsListRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/darker_gray" />
+                android:elevation="7dp"
+                android:background="@drawable/rounded_corner_top" />
 
         </LinearLayout>
 
@@ -41,11 +61,26 @@
             app:behavior_hideable="true"
             app:behavior_peekHeight="0dp">
 
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_add"
-                android:background="@android:color/transparent"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/selection_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageButton
+                    android:id="@+id/add_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_add"
+                    android:background="@android:color/transparent"/>
+
+            </LinearLayout>
+
+
         </androidx.core.widget.NestedScrollView>
 
 

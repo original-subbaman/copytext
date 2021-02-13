@@ -28,6 +28,12 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
     private List<Integer> mSelectedClipIdList;
     private static boolean isSelectionEnabled = false;
 
+    public ClipsRecyclerAdapter(ArrayList<ClipboardItem> list){
+        this.mSelectedClipIdList = new ArrayList<>();
+        this.mClipList = list;
+        setHasStableIds(true);
+    }
+
     public interface OnItemLongClickListener{
         boolean onItemLongClick(int position);
     }
@@ -44,10 +50,7 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
         this.mItemClickListener = listener;
     }
 
-    public ClipsRecyclerAdapter(ArrayList<ClipboardItem> list){
-        this.mSelectedClipIdList = new ArrayList<>();
-        this.mClipList = list;
-    }
+
 
     @NonNull
     @Override
@@ -61,35 +64,6 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
     public void onBindViewHolder(@NonNull ClipsViewHolder holder, int position) {
         ClipboardItem currentItem = mClipList.get(position);
 
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if(mLongClickListener != null){
-                    if(!isSelectionEnabled){
-                        isSelectionEnabled = true;
-                        setClipSelected(position);
-                    }
-                }
-                return true;
-            }
-        });
-
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isSelectionEnabled){
-                    setClipSelected(position);
-                }else{
-                    setClipUnselected(position);
-                }
-            }
-        });
-
-        if(currentItem.getSelected()){
-            //change background
-        }else{
-            //do nothing
-        }
         holder.mText.setText(currentItem.getText());
         holder.mTime.setText(currentItem.getTime());
 
@@ -115,16 +89,6 @@ public class ClipsRecyclerAdapter extends RecyclerView.Adapter<ClipsRecyclerAdap
 
 
         }
-    }
-
-    public void setClipSelected(int position){
-        mClipList.get(position).setSelected(true);
-        notifyItemChanged(position);
-    }
-
-    public void setClipUnselected(int position){
-        mClipList.get(position).setSelected(false);
-        notifyItemChanged(position);
     }
 
 

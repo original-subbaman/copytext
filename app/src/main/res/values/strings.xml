@@ -6,4 +6,6 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="item_selected_bg_color">#BDBDBD</string>
     <string name="item_selected_text_color">#424242</string>
+    <string name="action_selected_one">Selected</string>
+    <string name="action_selected_many">"Selected "</string>
 </resources>

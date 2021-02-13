@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,13 +34,18 @@ import com.subba.clipboardmanager.databinding.ActivityMainBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import eu.davidea.flexibleadapter.FlexibleAdapter;
+import eu.davidea.flexibleadapter.SelectableAdapter;
+import eu.davidea.flexibleadapter.items.IFlexible;
+
+public class MainActivity extends AppCompatActivity implements ActionMode.Callback, FlexibleAdapter.OnItemLongClickListener, FlexibleAdapter.OnItemClickListener{
     public static final String TAG = "Clip";
     
     private ActivityMainBinding binding;
-    private ArrayList<ClipboardItem> mClips;
+    private List<IFlexible> mClips;
     private ClipsRecyclerAdapter mAdapter;
     private FoldersRecyclerAdapter mFolderAdapter;
+    private FlexibleAdapter<IFlexible> mClipAdapter;
     private RecyclerView mClipsRecyclerView;
     private RecyclerView mFoldersRecyclerView;
     private RecyclerView.LayoutManager mClipsRecyclerViewLayoutManager;
@@ -48,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private String currentFolder = "Other";
     private Toolbar toolbar;
     private BottomSheetBehavior bottomSheetBehavior;
+    private ActionMode mActionMode;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         mClips = new ArrayList<>();
         folderList = new ArrayList<>();
         toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        this.setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(currentFolder);
                 ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
         viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(ClipboardViewModel.class);
@@ -67,10 +75,11 @@ public class MainActivity extends AppCompatActivity {
         setUpBottomSheet();
     }
 
-
     private void setUpRoomObservers(){
         viewModel.getAllClipsForOtherFolder().observe(this, clips -> {
-            mAdapter.setClips(clips);
+//            mAdapter.setClips(clips);
+            mClips.addAll(clips);
+            mClipAdapter.updateDataSet(mClips);
         });
 
         viewModel.getFolderList().observe(this, folders -> {
@@ -90,10 +99,14 @@ public class MainActivity extends AppCompatActivity {
 
         mClipsRecyclerView = findViewById(R.id.clipsListRecyclerView);
         mClipsRecyclerViewLayoutManager = new LinearLayoutManager(this);
-        mAdapter = new ClipsRecyclerAdapter(mClips);
+//        mAdapter = new ClipsRecyclerAdapter(mClips);
         mClipsRecyclerView.setHasFixedSize(true);
         mClipsRecyclerView.setLayoutManager(mClipsRecyclerViewLayoutManager);
-        mClipsRecyclerView.setAdapter(mAdapter);
+
+        mClipAdapter = new FlexibleAdapter<>(mClips);
+        mClipsRecyclerView.setAdapter(mClipAdapter);
+        mClipAdapter.addListener(this);
+        /*mClipsRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemLongClickListener(new ClipsRecyclerAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(int position) {
@@ -104,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 item.setSelected(!item.getSelected());
                 return item.getSelected();
             }
-        });
+        });*/
     }
 
     private void setUpFoldersRecyclerView(){
@@ -117,6 +130,14 @@ public class MainActivity extends AppCompatActivity {
     private void setUpBottomSheet(){
         bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
+
+    private void toggleBottomSheet(){
+       if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+           bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+       }else{
+           bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+       }
     }
 
     @Override
@@ -132,4 +153,67 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onItemLongClick(int position) {
+        if (mActionMode == null) {
+            mActionMode = startSupportActionMode(this);
+        }
+        toggleSelection(position);
+    }
+
+
+    @Override
+    public boolean onItemClick(View view, int position) {
+        if (mActionMode != null && position != RecyclerView.NO_POSITION) {
+            toggleSelection(position);
+            return true;
+        } else {
+
+            return false;
+        }
+
+
+    }
+
+    private void toggleSelection(int position) {
+        // Mark the position selected
+        mClipAdapter.toggleSelection(position);
+
+        int count = mClipAdapter.getSelectedItemCount();
+
+        if (count == 0) {
+            mActionMode.finish();
+        } else {
+            setContextTitle(count);
+        }
+    }
+
+    private void setContextTitle(int count) {
+            mActionMode.setTitle(String.valueOf(count) + " " + (count == 1 ?
+                getString(R.string.action_selected_one) :
+                getString(R.string.action_selected_many)));
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        mode.getMenuInflater().inflate(R.menu.action_mode_menu, menu);
+        mClipAdapter.setMode(SelectableAdapter.Mode.MULTI);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        return false;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        mClipAdapter.setMode(SelectableAdapter.Mode.IDLE);
+        mActionMode = null;
+    }
 }

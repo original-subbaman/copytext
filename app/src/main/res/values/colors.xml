@@ -8,4 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="grey_400">#BDBDBD  </color>
+    <color name="list_choice_pressed_bg_light">#BBDEFB</color>
+
 </resources>

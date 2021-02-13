@@ -1,7 +1,7 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Base application theme. -->
 
-    <style name="Theme.ClipBoardManager" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="Theme.ClipBoardManager" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -16,5 +16,9 @@
         <item name="actionModeBackground">@color/grey_400</item>
         <item name="windowActionModeOverlay">true</item>
         <!-- Customize your theme here. -->
+
+        <item name="android:selectableItemBackground">@drawable/selector_item_light</item>
+        <!--<item name="primaryTextSelector">@drawable/primary_text_selector_light</item>-->
     </style>
+
 </resources>
