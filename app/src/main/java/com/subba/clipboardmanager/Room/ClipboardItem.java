@@ -73,6 +73,8 @@ public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHo
         return this.folder;
     }
 
+    public void setFolder(String folder) { this.folder = folder; }
+
     public void setSelected(boolean selected) {
         this.isSelected = selected;
     }

@@ -13,13 +13,13 @@ import java.util.List;
 public interface ClipboardDAO {
 
     @Insert
-    void insert(ClipboardItem item);
+    void insert(ClipboardItem... item);
 
     @Update
-    void update(ClipboardItem item);
+    void update(ClipboardItem... item);
 
     @Delete
-    void delete(ClipboardItem item);
+    void delete(ClipboardItem... item);
 
     @Query("DELETE FROM clipboard_table WHERE folder = :folder AND id = :id")
     void deleteClipboardItemsFromFolder(String folder, int id);
@@ -30,6 +30,19 @@ public interface ClipboardDAO {
     @Query("SELECT * FROM clipboard_table")
     LiveData<List<ClipboardItem>> getAllClips();
 
-    @Query("SELECT DISTINCT folder FROM clipboard_table")
+    @Query("SELECT folderName FROM folder_table")
     LiveData<List<String>> getFolderList();
+
+    @Query("SELECT folderName FROM folder_table")
+    List<String> getFolderListWithoutObserver();
+
+    @Insert
+    void insert(Folder folder);
+
+    @Update
+    void update(Folder folder);
+
+    @Delete
+    void delete(Folder folder);
+
 }

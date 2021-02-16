@@ -1,7 +1,17 @@
 package com.subba.clipboardmanager.Activities;
 
-import androidx.annotation.NonNull;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.InputType;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ListView;
+
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
@@ -11,26 +21,15 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.ClipboardManager;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Toast;
-
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.subba.clipboardmanager.Adapters.ClipsRecyclerAdapter;
 import com.subba.clipboardmanager.Adapters.FoldersRecyclerAdapter;
-import com.subba.clipboardmanager.Room.ClipboardItem;
 import com.subba.clipboardmanager.R;
+import com.subba.clipboardmanager.Room.ClipboardItem;
 import com.subba.clipboardmanager.Room.ClipboardViewModel;
 import com.subba.clipboardmanager.Services.ClipboardMonitorService;
 import com.subba.clipboardmanager.databinding.ActivityMainBinding;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +37,12 @@ import eu.davidea.flexibleadapter.FlexibleAdapter;
 import eu.davidea.flexibleadapter.SelectableAdapter;
 import eu.davidea.flexibleadapter.items.IFlexible;
 
-public class MainActivity extends AppCompatActivity implements ActionMode.Callback, FlexibleAdapter.OnItemLongClickListener, FlexibleAdapter.OnItemClickListener{
+public class MainActivity extends AppCompatActivity implements ActionMode.Callback, FlexibleAdapter.OnItemLongClickListener, FlexibleAdapter.OnItemClickListener {
     public static final String TAG = "Clip";
-    
+
+    private static final int TYPE_INPUT_STRING = 0;
+    private static final int TYPE_SINGLE_CHOICE_ITEM = 1;
+
     private ActivityMainBinding binding;
     private List<IFlexible> mClips;
     private ClipsRecyclerAdapter mAdapter;
@@ -53,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     private List<String> folderList;
     private String currentFolder = "Other";
     private Toolbar toolbar;
-    private BottomSheetBehavior bottomSheetBehavior;
     private ActionMode mActionMode;
 
 
@@ -67,17 +68,19 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         toolbar = findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(currentFolder);
-                ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
+        ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
         viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(ClipboardViewModel.class);
         setUpRoomObservers();
         setUpNavigationDrawer();
         setUpClipsRecyclerView();
-        setUpBottomSheet();
     }
 
-    private void setUpRoomObservers(){
+    /*
+     * Set up Room observers, navigation drawer, recycler view for folder and clips
+     * */
+
+    private void setUpRoomObservers() {
         viewModel.getAllClipsForOtherFolder().observe(this, clips -> {
-//            mAdapter.setClips(clips);
             mClips.addAll(clips);
             mClipAdapter.updateDataSet(mClips);
         });
@@ -87,71 +90,44 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         });
     }
 
-    private void setUpNavigationDrawer(){
-       ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar,
+    private void setUpNavigationDrawer() {
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         binding.drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
         setUpFoldersRecyclerView();
     }
 
-    private void setUpClipsRecyclerView(){
+    private void setUpClipsRecyclerView() {
 
         mClipsRecyclerView = findViewById(R.id.clipsListRecyclerView);
         mClipsRecyclerViewLayoutManager = new LinearLayoutManager(this);
-//        mAdapter = new ClipsRecyclerAdapter(mClips);
         mClipsRecyclerView.setHasFixedSize(true);
         mClipsRecyclerView.setLayoutManager(mClipsRecyclerViewLayoutManager);
-
         mClipAdapter = new FlexibleAdapter<>(mClips);
         mClipsRecyclerView.setAdapter(mClipAdapter);
         mClipAdapter.addListener(this);
-        /*mClipsRecyclerView.setAdapter(mAdapter);
-        mAdapter.setOnItemLongClickListener(new ClipsRecyclerAdapter.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(int position) {
-                if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED){
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                }
-                ClipboardItem item = mAdapter.mClipList.get(position);
-                item.setSelected(!item.getSelected());
-                return item.getSelected();
-            }
-        });*/
     }
 
-    private void setUpFoldersRecyclerView(){
+    private void setUpFoldersRecyclerView() {
         mFolderAdapter = new FoldersRecyclerAdapter(folderList);
         binding.folderListRecyclerView.setHasFixedSize(true);
         binding.folderListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.folderListRecyclerView.setAdapter(mFolderAdapter);
     }
 
-    private void setUpBottomSheet(){
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-    }
-
-    private void toggleBottomSheet(){
-       if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
-           bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-       }else{
-           bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-       }
-    }
-
     @Override
     public void onBackPressed() {
-        if(binding.drawerLayout.isDrawerOpen(GravityCompat.START)){
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START);
-        }else{
+        } else {
             super.onBackPressed();
         }
-
-        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }
     }
+
+    /*
+     * Recycler Item click listeners
+     * */
 
     @Override
     public void onItemLongClick(int position) {
@@ -175,24 +151,10 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     }
 
-    private void toggleSelection(int position) {
-        // Mark the position selected
-        mClipAdapter.toggleSelection(position);
 
-        int count = mClipAdapter.getSelectedItemCount();
-
-        if (count == 0) {
-            mActionMode.finish();
-        } else {
-            setContextTitle(count);
-        }
-    }
-
-    private void setContextTitle(int count) {
-            mActionMode.setTitle(String.valueOf(count) + " " + (count == 1 ?
-                getString(R.string.action_selected_one) :
-                getString(R.string.action_selected_many)));
-    }
+    /*
+     * ActionMode Methods from Flexible Adapter
+     * */
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -208,6 +170,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.option_add:
+                //create
+                createAlertDialog();
+                break;
+        }
+
         return false;
     }
 
@@ -215,5 +184,84 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     public void onDestroyActionMode(ActionMode mode) {
         mClipAdapter.setMode(SelectableAdapter.Mode.IDLE);
         mActionMode = null;
+    }
+
+    /*
+    * Utility stuff
+    * */
+
+    private void toggleSelection(int position) {
+        // Mark the position selected
+        ((ClipboardItem) mClips.get(position)).setSelected(true);
+        mClipAdapter.toggleSelection(position);
+
+        int count = mClipAdapter.getSelectedItemCount();
+
+        if (count == 0) {
+            mActionMode.finish();
+        } else {
+            setContextTitle(count);
+        }
+    }
+
+    private void setContextTitle(int count) {
+        mActionMode.setTitle(String.valueOf(count) + " " + (count == 1 ?
+                getString(R.string.action_selected_one) :
+                getString(R.string.action_selected_many)));
+    }
+
+    private void createAlertDialog(int type){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        if(type == MainActivity.TYPE_INPUT_STRING){
+            builder.setTitle("Add folder name");
+            final EditText editText = new EditText(this);
+            editText.setId(InputType.TYPE_CLASS_TEXT);
+            builder.setView(editText);
+            builder.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String folderName = editText.getText().toString();
+                    //update folder list in db.
+                    //set selected items' folder attribute to foldername
+                    //call update of the selected items
+                }
+            });
+        }else if(type == MainActivity.TYPE_SINGLE_CHOICE_ITEM){
+            builder.setTitle("Select a folder");
+            List<String> folderList = new ArrayList<>();
+            folderList.add("Add new folder");
+            folderList.addAll(viewModel.getFolderListWithoutObserver());
+            final String[] folders = new String[folderList.size()];
+            builder.setSingleChoiceItems(folderList.toArray(folders), 0, null)
+            .setPositiveButton(R.string.select, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ListView listView = ((AlertDialog) dialog).getListView();
+                    String checkedFolder = (String) listView.getAdapter().getItem(listView.getCheckedItemPosition());
+                    if(checkedFolder.equals("Add new folder")){
+                        createAlertDialog(MainActivity.TYPE_INPUT_STRING);
+                    }
+                    List<ClipboardItem> items = new ArrayList<>();
+                    for(int i = 0; i < mClips.size(); i++){
+                        ClipboardItem item = ((ClipboardItem) mClips.get(i));
+                        if(item.getSelected()){
+                            item.setFolder(checkedFolder);
+                            items.add(item);
+                        }
+                    }
+                    viewModel.update((ClipboardItem[])items.toArray());
+                }
+            });
+
+        }
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+
+        builder.show();
     }
 }

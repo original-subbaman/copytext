@@ -1,7 +1,6 @@
 package com.subba.clipboardmanager.Room;
 
 import android.app.Application;
-import android.os.AsyncTask;
 
 import androidx.lifecycle.LiveData;
 
@@ -23,18 +22,18 @@ public class ClipboardRepository {
         folderList = clipDAO.getFolderList();
     }
 
-    public void insert(ClipboardItem clipboardItem){
-        RoomTask task = new RoomTask(clipDAO, clipboardItem, INSERT);
+    public void insert(ClipboardItem... clipboardItems){
+        RoomTask task = new RoomTask(clipDAO, INSERT, clipboardItems);
         new Thread(task).start();
     }
 
-    public void update(ClipboardItem clipboardItem){
-        RoomTask task = new RoomTask(clipDAO, clipboardItem, UPDATE);
+    public void update(ClipboardItem... clipboardItems){
+        RoomTask task = new RoomTask(clipDAO, UPDATE, clipboardItems);
         new Thread(task).start();
     }
 
-    public void delete(ClipboardItem clipboardItem){
-        RoomTask task = new RoomTask(clipDAO, clipboardItem, DELETE);
+    public void delete(ClipboardItem... clipboardItems){
+        RoomTask task = new RoomTask(clipDAO, DELETE, clipboardItems);
         new Thread(task).start();
     }
 
@@ -47,20 +46,24 @@ public class ClipboardRepository {
         return otherClips;
     }
 
+    public List<String> getFolderListWithoutObserver(){
+        return clipDAO.getFolderListWithoutObserver();
+    }
+
     public LiveData<List<String>> getFolderList(){
         return folderList;
     }
 
     private static class RoomTask implements Runnable{
         private ClipboardDAO clipboardDAO;
-        private ClipboardItem item;
+        private ClipboardItem[] items;
         private String folder;
         private int clipId;
         private String operation;
 
-        private RoomTask(ClipboardDAO dao, ClipboardItem item, String op){
+        private RoomTask(ClipboardDAO dao, String op, ClipboardItem... item){
             this.clipboardDAO = dao;
-            this.item = item;
+            this.items = item;
             this.operation = op;
         }
 
@@ -74,13 +77,13 @@ public class ClipboardRepository {
         public void run() {
             switch(operation){
                 case "INSERT":
-                    clipboardDAO.insert(item);
+                    clipboardDAO.insert(items);
                     break;
                 case "DELETE":
-                    clipboardDAO.delete(item);
+                    clipboardDAO.delete(items);
                     break;
                 case "UPDATE":
-                    clipboardDAO.update(item);
+                    clipboardDAO.update(items);
                     break;
                 case "MUL_DELETE":
                     clipboardDAO.deleteClipboardItemsFromFolder(folder, clipId);

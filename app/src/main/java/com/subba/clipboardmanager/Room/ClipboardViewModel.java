@@ -26,20 +26,24 @@ public class ClipboardViewModel extends AndroidViewModel {
 
     public LiveData<List<String>> getFolderList() { return folderList; }
 
-    public void insert(ClipboardItem item){
-        repository.insert(item);
+    public void insert(ClipboardItem... items){
+        repository.insert(items);
     }
 
-    public void update(ClipboardItem item){
-        repository.update(item);
+    public void update(ClipboardItem... items){
+        repository.update(items);
     }
 
-    public void delete(ClipboardItem item){
-        repository.delete(item);
+    public void delete(ClipboardItem... items){
+        repository.delete(items);
     }
 
     public void deleteClipboardItemsFromFolder(String folder, int id){
         repository.deleteClipboardItemsFromFolder(folder, id);
+    }
+
+    public List<String> getFolderListWithoutObserver(){
+        return repository.getFolderListWithoutObserver();
     }
 
 

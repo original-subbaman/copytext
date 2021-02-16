@@ -8,7 +8,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = ClipboardItem.class, version = 1, exportSchema = false)
+@Database(entities = {ClipboardItem.class, Folder.class}, version = 1, exportSchema = false)
 public abstract class ClipboardDatabase extends RoomDatabase {
 
     private static ClipboardDatabase instance;

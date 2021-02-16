@@ -9,14 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.subba.clipboardmanager.R;
+import com.subba.clipboardmanager.Room.Folder;
 
 import java.util.List;
 
 public class FoldersRecyclerAdapter extends RecyclerView.Adapter<FoldersRecyclerAdapter.FoldersViewHolder> {
 
-    private List<String> mFolderList;
+    private List<Folder> mFolderList;
 
-    public FoldersRecyclerAdapter(List<String> list){
+    public FoldersRecyclerAdapter(List<Folder> list){
         this.mFolderList = list;
     }
 
@@ -30,7 +31,7 @@ public class FoldersRecyclerAdapter extends RecyclerView.Adapter<FoldersRecycler
 
     @Override
     public void onBindViewHolder(@NonNull FoldersViewHolder holder, int position) {
-        holder.mFolderName.setText(mFolderList.get(position));
+        holder.mFolderName.setText(mFolderList.get(position).getFolderName());
     }
 
     @Override
@@ -38,7 +39,7 @@ public class FoldersRecyclerAdapter extends RecyclerView.Adapter<FoldersRecycler
         return mFolderList.size();
     }
 
-    public void setFolderList(List<String> itemList){
+    public void setFolderList(List<Folder> itemList){
         this.mFolderList = itemList;
         notifyDataSetChanged();
     }
