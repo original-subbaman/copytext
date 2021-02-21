@@ -14,11 +14,9 @@ import androidx.core.app.NotificationManagerCompat;
 import com.subba.clipboardmanager.Activities.App;
 import com.subba.clipboardmanager.Activities.MainActivity;
 import com.subba.clipboardmanager.R;
-import com.subba.clipboardmanager.Room.ClipboardItem;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Date;
 
 public class ClipboardMonitorService extends Service {

@@ -1,11 +1,15 @@
-package com.subba.clipboardmanager.Room;
+package com.subba.clipboardmanager.Room.DAO;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
+
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
+import com.subba.clipboardmanager.Room.Relation.ClipItemAndFolder;
 
 import java.util.List;
 
@@ -21,28 +25,18 @@ public interface ClipboardDAO {
     @Delete
     void delete(ClipboardItem... item);
 
-    @Query("DELETE FROM clipboard_table WHERE folder = :folder AND id = :id")
+    @Query("DELETE FROM clipboard_table WHERE folder = :folder AND clipId = :id")
     void deleteClipboardItemsFromFolder(String folder, int id);
 
     @Query("SELECT * FROM clipboard_table WHERE folder = :folder")
     LiveData<List<ClipboardItem>> getClipboardItemsForFolder(String folder);
 
     @Query("SELECT * FROM clipboard_table")
-    LiveData<List<ClipboardItem>> getAllClips();
+    List<ClipboardItem> getAllFolders();
 
-    @Query("SELECT folderName FROM folder_table")
-    LiveData<List<String>> getFolderList();
+    @Transaction
+    @Query("SELECT * FROM clipboard_table")
+    List<ClipItemAndFolder> getClipItemAndFolder();
 
-    @Query("SELECT folderName FROM folder_table")
-    List<String> getFolderListWithoutObserver();
-
-    @Insert
-    void insert(Folder folder);
-
-    @Update
-    void update(Folder folder);
-
-    @Delete
-    void delete(Folder folder);
 
 }

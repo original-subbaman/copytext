@@ -1,21 +1,16 @@
 package com.subba.clipboardmanager.Adapters;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
-import androidx.recyclerview.selection.ItemDetailsLookup;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.subba.clipboardmanager.Room.ClipboardItem;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 import com.subba.clipboardmanager.R;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;

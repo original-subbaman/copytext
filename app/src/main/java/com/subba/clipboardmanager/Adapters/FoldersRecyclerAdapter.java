@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.subba.clipboardmanager.R;
-import com.subba.clipboardmanager.Room.Folder;
+import com.subba.clipboardmanager.Room.Entity.Folder;
 
 import java.util.List;
 
@@ -20,6 +20,8 @@ public class FoldersRecyclerAdapter extends RecyclerView.Adapter<FoldersRecycler
     public FoldersRecyclerAdapter(List<Folder> list){
         this.mFolderList = list;
     }
+
+    public FoldersRecyclerAdapter(){}
 
     @NonNull
     @Override

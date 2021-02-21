@@ -1,7 +1,5 @@
-package com.subba.clipboardmanager.Room;
+package com.subba.clipboardmanager.Room.Entity;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.TextView;
 
@@ -11,7 +9,6 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import com.google.android.material.drawable.DrawableUtils;
 import com.subba.clipboardmanager.R;
 
 import java.util.List;
@@ -25,40 +22,39 @@ import eu.davidea.viewholders.FlexibleViewHolder;
 public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHolder> {
 
     @PrimaryKey(autoGenerate = true)
-    private int id;
+    private int clipId;
     private String text;
     private String time;
-    private String folder;
+    private int folderId;
     @Ignore
     private boolean isSelected;
 
 
     @Ignore
     public ClipboardItem(String text, String time) {
-        this(text, time, "Other", false);
+        this(text, time, 0001, false);
     }
 
     @Ignore
-    public ClipboardItem(String text, String time, String folder, boolean isSelected) {
+    public ClipboardItem(String text, String time, int folderId, boolean isSelected) {
         this.text = text;
         this.time = time;
-        this.folder = folder;
+        this.folderId = folderId;
         this.isSelected = isSelected;
     }
 
-    public ClipboardItem(String text, String time, String folder) {
+    public ClipboardItem(String text, String time, int folderId) {
         this.text = text;
         this.time = time;
-        this.folder = folder;
+        this.folderId = folderId;
     }
 
-
-    public void setId(int id) {
-        this.id = id;
+    public void setClipId(int clipId) {
+        this.clipId = clipId;
     }
 
-    public int getId() {
-        return this.id;
+    public int getClipId() {
+        return this.clipId;
     }
 
     public String getText() {
@@ -69,11 +65,11 @@ public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHo
         return this.time;
     }
 
-    public String getFolder() {
-        return this.folder;
+    public int getFolderId() {
+        return this.folderId;
     }
 
-    public void setFolder(String folder) { this.folder = folder; }
+    public void setFolderId(int folderId) { this.folderId = folderId; }
 
     public void setSelected(boolean selected) {
         this.isSelected = selected;
@@ -88,7 +84,7 @@ public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHo
     public boolean equals(Object o) {
         if (o instanceof ClipboardItem) {
             ClipboardItem clipboardItem = (ClipboardItem) o;
-            return (this.id == clipboardItem.id);
+            return (this.clipId == clipboardItem.clipId);
         }
         return false;
     }

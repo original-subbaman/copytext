@@ -1,26 +1,28 @@
-package com.subba.clipboardmanager.Room;
+package com.subba.clipboardmanager.Room.Repository;
 
 import android.app.Application;
 
 import androidx.lifecycle.LiveData;
+
+import com.subba.clipboardmanager.Room.Database.CopyTextDatabase;
+import com.subba.clipboardmanager.Room.DAO.ClipboardDAO;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 
 import java.util.List;
 
 public class ClipboardRepository {
     private ClipboardDAO clipDAO;
     private LiveData<List<ClipboardItem>> otherClips;
-    private LiveData<List<String>> folderList;
     private static final String INSERT = "INSERT";
     private static final String DELETE = "DELETE";
     private static final String UPDATE = "UPDATE";
     private static final String MUL_DELETE = "DELETE";
 
     public ClipboardRepository(Application application){
-        ClipboardDatabase db = ClipboardDatabase.getInstance(application);
+        CopyTextDatabase db = CopyTextDatabase.getInstance(application);
         clipDAO = db.getClipboardDAO();
         otherClips = clipDAO.getClipboardItemsForFolder("Other");
-        folderList = clipDAO.getFolderList();
-    }
+     }
 
     public void insert(ClipboardItem... clipboardItems){
         RoomTask task = new RoomTask(clipDAO, INSERT, clipboardItems);
@@ -44,14 +46,6 @@ public class ClipboardRepository {
 
     public LiveData<List<ClipboardItem>> getClipboardItemsForFolder(String folder){
         return otherClips;
-    }
-
-    public List<String> getFolderListWithoutObserver(){
-        return clipDAO.getFolderListWithoutObserver();
-    }
-
-    public LiveData<List<String>> getFolderList(){
-        return folderList;
     }
 
     private static class RoomTask implements Runnable{

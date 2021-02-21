@@ -1,4 +1,4 @@
-package com.subba.clipboardmanager.Room;
+package com.subba.clipboardmanager.Room.Database;
 
 import android.content.Context;
 
@@ -8,17 +8,23 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {ClipboardItem.class, Folder.class}, version = 1, exportSchema = false)
-public abstract class ClipboardDatabase extends RoomDatabase {
+import com.subba.clipboardmanager.Room.DAO.ClipboardDAO;
+import com.subba.clipboardmanager.Room.DAO.FolderDAO;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
+import com.subba.clipboardmanager.Room.Entity.Folder;
 
-    private static ClipboardDatabase instance;
+@Database(entities = {ClipboardItem.class, Folder.class}, version = 1, exportSchema = false)
+public abstract class CopyTextDatabase extends RoomDatabase {
+
+    private static CopyTextDatabase instance;
 
     public abstract ClipboardDAO getClipboardDAO();
+    public abstract FolderDAO getFolderDAO();
 
-    public static synchronized ClipboardDatabase getInstance(Context context){
+    public static synchronized CopyTextDatabase getInstance(Context context){
         if(instance == null){
             instance = Room.databaseBuilder(context.getApplicationContext(),
-                    ClipboardDatabase.class, "clipboard_database")
+                    CopyTextDatabase.class, "copytext_database")
                     .fallbackToDestructiveMigration()
                     .addCallback(roomCallback)
                     .build();

@@ -24,12 +24,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.subba.clipboardmanager.Adapters.ClipsRecyclerAdapter;
 import com.subba.clipboardmanager.Adapters.FoldersRecyclerAdapter;
 import com.subba.clipboardmanager.R;
-import com.subba.clipboardmanager.Room.ClipboardItem;
-import com.subba.clipboardmanager.Room.ClipboardViewModel;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
+import com.subba.clipboardmanager.Room.Entity.Folder;
+import com.subba.clipboardmanager.Room.ViewModel.RoomViewModel;
 import com.subba.clipboardmanager.Services.ClipboardMonitorService;
 import com.subba.clipboardmanager.databinding.ActivityMainBinding;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     private RecyclerView mClipsRecyclerView;
     private RecyclerView mFoldersRecyclerView;
     private RecyclerView.LayoutManager mClipsRecyclerViewLayoutManager;
-    public static ClipboardViewModel viewModel;
+    public static RoomViewModel viewModel;
     private List<String> folderList;
     private String currentFolder = "Other";
     private Toolbar toolbar;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         this.setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(currentFolder);
         ContextCompat.startForegroundService(this, new Intent(this, ClipboardMonitorService.class));
-        viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(ClipboardViewModel.class);
+        viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(RoomViewModel.class);
         setUpRoomObservers();
         setUpNavigationDrawer();
         setUpClipsRecyclerView();
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             mClipAdapter.updateDataSet(mClips);
         });
 
-        viewModel.getFolderList().observe(this, folders -> {
+        viewModel.getFolderListAsLiveData().observe(this, folders -> {
             mFolderAdapter.setFolderList(folders);
         });
     }
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     private void setUpFoldersRecyclerView() {
-        mFolderAdapter = new FoldersRecyclerAdapter(folderList);
+        mFolderAdapter = new FoldersRecyclerAdapter();
         binding.folderListRecyclerView.setHasFixedSize(true);
         binding.folderListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.folderListRecyclerView.setAdapter(mFolderAdapter);
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     /*
-     * Recycler Item click listeners
+     * Recycler Item click listeners. Long press to start Action Mode. On tap to select or deselect item.
      * */
 
     @Override
@@ -151,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     }
 
-
     /*
      * ActionMode Methods from Flexible Adapter
      * */
@@ -173,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         switch(item.getItemId()){
             case R.id.option_add:
                 //create
-                createAlertDialog();
+                createAlertDialog(TYPE_SINGLE_CHOICE_ITEM);
                 break;
         }
 
@@ -192,7 +191,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     private void toggleSelection(int position) {
         // Mark the position selected
-        ((ClipboardItem) mClips.get(position)).setSelected(true);
+        ClipboardItem clipboardItem = (ClipboardItem) mClips.get(position);
+        if(clipboardItem.getSelected()){
+            clipboardItem.setSelected(false);
+        }else{
+            clipboardItem.setSelected(true);
+        }
+
         mClipAdapter.toggleSelection(position);
 
         int count = mClipAdapter.getSelectedItemCount();
@@ -210,6 +215,17 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 getString(R.string.action_selected_many)));
     }
 
+    private List<ClipboardItem> getSelectedItems(){
+        List<ClipboardItem> selectedItems = new ArrayList<>();
+        for(int i = 0; i < mClips.size(); i++){
+            ClipboardItem item = ((ClipboardItem) mClips.get(i));
+            if(item.getSelected()){
+                selectedItems.add(item);
+            }
+        }
+        return selectedItems;
+    }
+
     private void createAlertDialog(int type){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         if(type == MainActivity.TYPE_INPUT_STRING){
@@ -221,33 +237,37 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     String folderName = editText.getText().toString();
-                    //update folder list in db.
-                    //set selected items' folder attribute to foldername
+                    //insert new folder in folder table.
+                    Folder newFolder = new Folder(folderName);
+                    viewModel.insert(newFolder);
+                    //set selected items' folder attribute to folder name
+                    List<ClipboardItem> selectedItems = getSelectedItems();
+                    for(ClipboardItem item : selectedItems){
+                        item.setFolderId(newFolder.getFolderId());
+                    }
                     //call update of the selected items
+                    viewModel.update((ClipboardItem[])selectedItems.toArray());
                 }
             });
         }else if(type == MainActivity.TYPE_SINGLE_CHOICE_ITEM){
             builder.setTitle("Select a folder");
             List<String> folderList = new ArrayList<>();
             folderList.add("Add new folder");
-            folderList.addAll(viewModel.getFolderListWithoutObserver());
+            folderList.addAll(viewModel.getFolderList());
             final String[] folders = new String[folderList.size()];
             builder.setSingleChoiceItems(folderList.toArray(folders), 0, null)
             .setPositiveButton(R.string.select, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     ListView listView = ((AlertDialog) dialog).getListView();
-                    String checkedFolder = (String) listView.getAdapter().getItem(listView.getCheckedItemPosition());
-                    if(checkedFolder.equals("Add new folder")){
+                    String selectedFolderName = (String) listView.getAdapter().getItem(listView.getCheckedItemPosition());
+                    Folder selectedFolder = viewModel.getFolderWithName(selectedFolderName);
+                    if(selectedFolderName.equals("Add new folder")){
                         createAlertDialog(MainActivity.TYPE_INPUT_STRING);
                     }
-                    List<ClipboardItem> items = new ArrayList<>();
-                    for(int i = 0; i < mClips.size(); i++){
-                        ClipboardItem item = ((ClipboardItem) mClips.get(i));
-                        if(item.getSelected()){
-                            item.setFolder(checkedFolder);
-                            items.add(item);
-                        }
+                    List<ClipboardItem> items = getSelectedItems();
+                    for(ClipboardItem item : items){
+                        item.setFolderId(selectedFolder.getFolderId());
                     }
                     viewModel.update((ClipboardItem[])items.toArray());
                 }
