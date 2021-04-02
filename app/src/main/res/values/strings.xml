@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">ClipBoardManager</string>
-    <string name="channel_name">CopyPasteNotificationChannel</string>
+    <string name="app_name">CopyText</string>
+    <string name="channel_name">CopyTextNotificationChannel</string>
     <string name="channel_description">Delivers notification on when the app\'s clipboard service is working or not.</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -12,4 +12,18 @@
     <string name="cancel">Cancel</string>
     <string name="add_new_folder">Add new folder</string>
     <string name="add">Add</string>
+    <string name="search_clips">search clips</string>
+    <string name="search_hint">Search string...</string>
+    <string name="delete_tite">Do you want to delete this folder?</string>
+    <string name="delete_msg">Deleting this folder will permanently delete all the notes within the folder.</string>
+    <string name="delete">Delete</string>
+    <string name="rename_folder_title">Rename folder</string>
+    <string name="rename">Rename</string>
+    <string name="empty_input">Empty input!</string>
+    <string name="hint_add_string">Add folder name</string>
+    <string name="add_folder_name">Add folder name</string>
+    <string name="new_folder">New Folder</string>
+    <string name="today">today</string>
+    <string name="clear">Clear</string>
+    <string name="note_updated">Note updated</string>
 </resources>

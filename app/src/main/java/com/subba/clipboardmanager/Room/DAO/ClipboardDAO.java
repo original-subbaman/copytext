@@ -25,18 +25,9 @@ public interface ClipboardDAO {
     @Delete
     void delete(ClipboardItem... item);
 
-    @Query("DELETE FROM clipboard_table WHERE folder = :folder AND clipId = :id")
-    void deleteClipboardItemsFromFolder(String folder, int id);
-
-    @Query("SELECT * FROM clipboard_table WHERE folder = :folder")
-    LiveData<List<ClipboardItem>> getClipboardItemsForFolder(String folder);
-
     @Query("SELECT * FROM clipboard_table")
     List<ClipboardItem> getAllFolders();
 
-    @Transaction
-    @Query("SELECT * FROM clipboard_table")
-    List<ClipItemAndFolder> getClipItemAndFolder();
 
 
 }

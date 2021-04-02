@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/edit_title"
+        android:title= "Edit folder title"
+        android:icon="@drawable/ic_edit"
+        app:showAsAction="collapseActionView|ifRoom" />
+
+    <item
+        android:id="@+id/add_note"
+        android:title= "Add new note"
+        android:icon="@drawable/ic_add"
+        app:showAsAction="collapseActionView|ifRoom" />
+
+    <item
+        android:id="@+id/delete"
+        android:title= "Delete folder"
+        android:icon="@drawable/ic_delete"
+        app:showAsAction="collapseActionView|ifRoom" />
+
+</menu>

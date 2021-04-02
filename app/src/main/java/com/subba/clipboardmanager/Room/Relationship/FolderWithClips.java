@@ -1,4 +1,4 @@
-package com.subba.clipboardmanager.Room.Relation;
+package com.subba.clipboardmanager.Room.Relationship;
 
 import androidx.room.Embedded;
 import androidx.room.Relation;
@@ -6,13 +6,16 @@ import androidx.room.Relation;
 import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 import com.subba.clipboardmanager.Room.Entity.Folder;
 
-public class ClipItemAndFolder {
-    @Embedded public Folder folder;
+import java.util.List;
+
+public class FolderWithClips {
+    @Embedded
+    public Folder folder;
+
     @Relation(
             parentColumn = "folderId",
-            entityColumn = "clipId"
+            entityColumn = "folderId"
     )
-
-    public ClipboardItem clipboardItem;
+    public List<ClipboardItem> clips;
 
 }

@@ -5,9 +5,11 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.subba.clipboardmanager.Room.Entity.Folder;
+import com.subba.clipboardmanager.Room.Relationship.FolderWithClips;
 
 import java.util.List;
 
@@ -23,13 +25,21 @@ public interface FolderDAO {
     @Delete
     void delete(Folder item);
 
-    @Query("SELECT folderName FROM folder_table")
+    @Query("SELECT * FROM folder_table")
     LiveData<List<Folder>> getAllFoldersAsLiveData();
 
     @Query("SELECT * FROM folder_table WHERE folderName = :folderName")
-    Folder getFolderWithName(String folderName);
+    LiveData<Folder> getFolderWithName(String folderName);
 
     @Query("SELECT folderName FROM folder_table")
-    List<String> getFolderList();
+    LiveData<List<String>> getFolderListAsString();
+
+    @Transaction
+    @Query("SELECT * FROM folder_table WHERE folderName = :folderName")
+    LiveData<List<FolderWithClips>> getClipsFromFolder(String folderName);
+
+    @Transaction
+    @Query("SELECT * FROM folder_table WHERE folderName = :folderName")
+    List<FolderWithClips> getClipsFromFolderAsList(String folderName);
 
 }

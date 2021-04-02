@@ -21,7 +21,6 @@ public class ClipboardRepository {
     public ClipboardRepository(Application application){
         CopyTextDatabase db = CopyTextDatabase.getInstance(application);
         clipDAO = db.getClipboardDAO();
-        otherClips = clipDAO.getClipboardItemsForFolder("Other");
      }
 
     public void insert(ClipboardItem... clipboardItems){
@@ -78,9 +77,6 @@ public class ClipboardRepository {
                     break;
                 case "UPDATE":
                     clipboardDAO.update(items);
-                    break;
-                case "MUL_DELETE":
-                    clipboardDAO.deleteClipboardItemsFromFolder(folder, clipId);
                     break;
             }
         }

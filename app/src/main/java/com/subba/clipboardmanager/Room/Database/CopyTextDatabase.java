@@ -36,19 +36,8 @@ public abstract class CopyTextDatabase extends RoomDatabase {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
+            db.execSQL("INSERT INTO folder_table (folderName) VALUES (\"Recent\")");
         }
     };
 
-    private static class PopulateDB implements Runnable{
-        private ClipboardDAO dao;
-        public PopulateDB(ClipboardDAO dao) {
-            this.dao = dao;
-        }
-
-        @Override
-        public void run() {
-            dao.insert(new ClipboardItem("First", "9:00AM", "Other"));
-            dao.insert(new ClipboardItem("Second", "10:00AM", "Other"));
-        }
-    }
 }

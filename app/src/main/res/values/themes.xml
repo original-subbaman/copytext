@@ -13,12 +13,16 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
 
-        <item name="actionModeBackground">@color/grey_400</item>
+        <item name="actionModeBackground">@color/lg_blue_500</item>
         <item name="windowActionModeOverlay">true</item>
         <!-- Customize your theme here. -->
 
         <item name="android:selectableItemBackground">@drawable/selector_item_light</item>
-        <!--<item name="primaryTextSelector">@drawable/primary_text_selector_light</item>-->
+
+    </style>
+
+    <style name="AlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/lg_blue_500</item>
     </style>
 
 </resources>

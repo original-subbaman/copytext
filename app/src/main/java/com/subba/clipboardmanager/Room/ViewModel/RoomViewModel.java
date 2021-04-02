@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.subba.clipboardmanager.Room.Relationship.FolderWithClips;
 import com.subba.clipboardmanager.Room.Repository.ClipboardRepository;
 import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 import com.subba.clipboardmanager.Room.Entity.Folder;
@@ -47,13 +48,6 @@ public class RoomViewModel extends AndroidViewModel {
         clipboardRepo.deleteClipboardItemsFromFolder(folder, id);
     }
 
-    public LiveData<List<ClipboardItem>> getAllClipsForOtherFolder(){
-        return allClips;
-    }
-
-    public LiveData<List<Folder>> getFolderListAsLiveData() { return this.folderList; }
-
-
     /*
     * Database operations for Folder table
     * */
@@ -64,11 +58,19 @@ public class RoomViewModel extends AndroidViewModel {
 
     public void delete(Folder folder) { folderRepo.delete(folder); }
 
-    public List<String> getFolderList(){
-        return folderRepo.getFolderList();
+    public LiveData<List<String>> getFolderListAsString(){
+        return folderRepo.getFolderListAsString();
     }
 
-    public Folder getFolderWithName(String folderName) { return folderRepo.getFolderWithName(folderName); }
+    public LiveData<Folder> getFolderWithName(String folderName) { return folderRepo.getFolderWithName(folderName); }
 
+    public LiveData<List<FolderWithClips>> getClipsFromFolder(String folder) {
+        return folderRepo.getClipsFromFolder(folder);
+    }
 
+    public LiveData<List<Folder>> getFolderListAsLiveData() { return this.folderList; }
+
+    public List<FolderWithClips> getClipsFromFolderAsList(String folder){
+        return folderRepo.getClipsFromFolderAsList(folder);
+    }
 }
