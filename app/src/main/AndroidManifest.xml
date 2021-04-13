@@ -10,7 +10,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClipBoardManager">
-        <activity android:name=".Activities.EditNoteActivity"></activity>
         <activity android:name=".Activities.NotesActivity" />
         <activity
             android:name=".Activities.SearchResultActivity"
@@ -19,17 +18,19 @@
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
         </activity>
+
         <activity android:name=".Activities.MainActivity">
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.SEARCH"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <meta-data
-            android:name="android.app.searchable"
-            android:resource="@xml/searchable" />
+
 
         <service
             android:name=".Services.ClipboardMonitorService"
@@ -37,6 +38,9 @@
             android:label="Clipboard Monitor" />
 
         <receiver android:name=".Utility.NotificationReceiver"/>
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

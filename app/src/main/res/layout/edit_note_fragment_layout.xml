@@ -8,6 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="start"
-        android:background="@null"/>
+        android:background="@null"
+        android:padding="4dp"
+        android:scrollbars="vertical"/>
 
 </LinearLayout>

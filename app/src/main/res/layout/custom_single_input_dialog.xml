@@ -4,21 +4,22 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:padding="8dp"
     android:background="@drawable/rounded_corner_top">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/lg_blue_500">
+        android:layout_height="wrap_content">
         <TextView
             android:id="@+id/dialog_title_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
             android:textSize="22sp"
             android:text="@string/rename_folder_title"
-            android:textColor="@color/white"
-            android:layout_marginBottom="8dp"
+            android:textAlignment="textStart"
+            android:gravity="start"
+            android:textColor="@color/black"
+            android:layout_marginBottom="6dp"
             android:padding="8dp"/>
 
     </LinearLayout>
@@ -29,8 +30,8 @@
         android:layout_height="wrap_content"
         android:hint="@string/hint_add_string"
         android:padding="8dp"
-        app:hintTextColor="@color/lg_blue_500"
-        app:boxStrokeColor="@color/lg_blue_500"
+        app:hintTextColor="@color/purple_500"
+        app:boxStrokeColor="@color/purple_500"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -47,24 +48,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
-        android:padding="8dp">
+        android:gravity="end">
         <Button
             android:id="@+id/cancel_dialog_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:textColor="@color/lg_blue_500"
-            android:text="@string/cancel"
-            android:layout_marginRight="16dp"/>
+            android:textColor="@color/black"
+            android:text="@string/cancel" />
 
         <Button
             android:id="@+id/positive_dialog_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/lg_blue_500"
-            android:textColor="@color/white"
+            android:backgroundTint="@color/white"
+            android:textColor="@color/black"
             android:text="@string/rename"
+            style="@style/Widget.AppCompat.Button.Borderless"
             />
     </LinearLayout>
 

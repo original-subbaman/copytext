@@ -1,33 +1,18 @@
 package com.subba.clipboardmanager.Activities;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityOptionsCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import androidx.fragment.app.Fragment;
 import androidx.transition.Fade;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.subba.clipboardmanager.Fragments.DisplayClipsFragment;
+import com.subba.clipboardmanager.Fragments.ClipListFragment;
 import com.subba.clipboardmanager.Fragments.EditNoteFragment;
 import com.subba.clipboardmanager.R;
 import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
-import com.subba.clipboardmanager.Room.Entity.Folder;
 import com.subba.clipboardmanager.databinding.ActivityNotesBinding;
 
 import java.util.ArrayList;
@@ -38,16 +23,17 @@ import eu.davidea.flexibleadapter.items.IFlexible;
 
 import static com.subba.clipboardmanager.Activities.MainActivity.mFolderList;
 
-public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.OnItemClickListener{
+public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.OnItemClickListener {
 
     private static final String TAG = "NotesActivity";
     private static List<IFlexible> clipsList;
     private ActivityNotesBinding mBinding;
     private String folder;
     private int folderId;
+    private int currentFragment;
     public static FlexibleAdapter<IFlexible> mAdapter;
-    private static final int DISPLAY_CLIPS_FRAGMENT = 1;
-    private static final int EDIT_CLIPS_FRAGMENT = 2;
+    public static final int DISPLAY_CLIPS_FRAGMENT = 1;
+    public static final int EDIT_CLIPS_FRAGMENT = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,43 +57,55 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
         setObserver(folder);
 
 
-
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        DisplayClipsFragment displayClipsFragment = new DisplayClipsFragment();
         Bundle bundle = new Bundle();
+        if (savedInstanceState != null) {
+            currentFragment = savedInstanceState.getInt("currentFragment");
+        } else {
+            currentFragment = DISPLAY_CLIPS_FRAGMENT;
+        }
+
         bundle.putInt("folder_id", folderId);
-        displayClipsFragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction()
-                .setReorderingAllowed(true)
-                .add(R.id.notes_fragment_container, displayClipsFragment, null)
-                .commit();
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(String.valueOf(currentFragment));
+        if (fragment == null) {
+            ClipListFragment clipListFragment = new ClipListFragment();
+            clipListFragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .add(R.id.notes_fragment_container, clipListFragment, String.valueOf(currentFragment))
+                    .commit();
+            currentFragment = DISPLAY_CLIPS_FRAGMENT;
+        } else {
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.notes_fragment_container, fragment, String.valueOf(currentFragment))
+                    .commit();
+
+        }
+
 
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        this.finish();
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt("currentFragment", currentFragment);
+        super.onSaveInstanceState(outState);
+
+
     }
 
     /*
-   * Set up methods
-   * */
-    public void setObserver(String folder){
+     * Set up methods
+     * */
+    public void setObserver(String folder) {
         MainActivity.viewModel.getClipsFromFolder(folder).observe(this, folderWithClips -> {
             clipsList.clear();
-            if(folderWithClips.size() != 0){
+            if (folderWithClips.size() != 0) {
                 clipsList.addAll(folderWithClips.get(0).clips);
-                for(IFlexible clip : clipsList){
+                for (IFlexible clip : clipsList) {
                     ((ClipboardItem) clip).setIsNote(true);
                 }
                 mAdapter.updateDataSet(clipsList);
-            }else{
+            } else {
                 Log.d(TAG, "setObserver: folder deleted");
             }
         });
@@ -126,21 +124,25 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
     }
 
     /*
-    * Utility
-    * */
+     * Utility
+     * */
 
 
-    private void replaceCurrentFragmentWith(int fragmentId, ClipboardItem value){
+    public void replaceCurrentFragmentWith(int fragmentId, ClipboardItem value) {
 
-        switch(fragmentId){
+        switch (fragmentId) {
             case DISPLAY_CLIPS_FRAGMENT:
+                currentFragment = DISPLAY_CLIPS_FRAGMENT;
+                ClipListFragment clipListFragment = new ClipListFragment();
                 getSupportFragmentManager().beginTransaction()
                         .setReorderingAllowed(true)
                         .addToBackStack("display_note")
-                        .replace(R.id.notes_fragment_container, DisplayClipsFragment.class, null)
+                        .replace(R.id.notes_fragment_container, clipListFragment, String.valueOf(currentFragment))
                         .commit();
+
                 break;
             case EDIT_CLIPS_FRAGMENT:
+                currentFragment = EDIT_CLIPS_FRAGMENT;
                 EditNoteFragment editNoteFragment = new EditNoteFragment();
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("note", value);
@@ -149,8 +151,9 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
                         .beginTransaction()
                         .setReorderingAllowed(true)
                         .addToBackStack("edit_note")
-                        .replace(R.id.notes_fragment_container, editNoteFragment, null)
-                        .commit(); 
+                        .replace(R.id.notes_fragment_container, editNoteFragment, String.valueOf(currentFragment))
+                        .commit();
+
                 break;
 
         }
@@ -159,10 +162,9 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
 
     @Override
     public void onBackPressed() {
-        if(getSupportFragmentManager().getBackStackEntryCount() > 0){
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
-            Log.d(TAG, "onBackPressed: " + getSupportFragmentManager().getBackStackEntryCount());
-        }else{
+        } else {
             super.onBackPressed();
         }
     }

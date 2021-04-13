@@ -27,11 +27,14 @@ import java.util.List;
 import eu.davidea.flexibleadapter.AnimatorAdapter;
 import eu.davidea.flexibleadapter.FlexibleAdapter;
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem;
+import eu.davidea.flexibleadapter.items.IFilterable;
 import eu.davidea.flexibleadapter.items.IFlexible;
 import eu.davidea.viewholders.FlexibleViewHolder;
 
+import static com.subba.clipboardmanager.Activities.MainActivity.TAG;
+
 @Entity(tableName = "clipboard_table")
-public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHolder> implements Serializable {
+public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHolder> implements Serializable, IFilterable<String> {
 
     @PrimaryKey(autoGenerate = true)
     private int clipId;
@@ -55,6 +58,15 @@ public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHo
         this.time = time;
         this.folderId = folderId;
         this.isSelected = isSelected;
+    }
+
+    //Constructor used when creating a new note
+    @Ignore
+    public ClipboardItem(int folderId){
+        this.folderId = folderId;
+        this.time = "";
+        this.text = "";
+        this.clipId = 0;
     }
 
     public ClipboardItem(String text, String time, int folderId) {
@@ -139,26 +151,40 @@ public class ClipboardItem extends AbstractFlexibleItem<ClipboardItem.ClipViewHo
         if(isNote){
             holder.mNote.setText(this.text);
         }else{
+
             holder.mText.setText(this.text);
             holder.mTime.setText(this.time);
+
         }
+    }
+
+    @Ignore
+    @Override
+    public boolean filter(String constraint) {
+        if(getText().toLowerCase().contains(constraint.toLowerCase())){
+            return true;
+        }
+        return false;
     }
 
     public class ClipViewHolder extends FlexibleViewHolder {
         private TextView mText;
         private TextView mTime;
         private TextView mNote;
-        private CardView mCardView;
         public ClipViewHolder(@NonNull View itemView, FlexibleAdapter adapter) {
             super(itemView, adapter);
             if(isNote){
                 mNote = itemView.findViewById(R.id.note_edit_txt_view);
-                mCardView = itemView.findViewById(R.id.card_view_parent);
             }else{
                 mText = itemView.findViewById(R.id.clip_text);
                 mTime = itemView.findViewById(R.id.clip_time);
             }
 
+        }
+
+        @Override
+        protected boolean shouldActivateViewWhileSwiping() {
+            return false;
         }
     }
 }

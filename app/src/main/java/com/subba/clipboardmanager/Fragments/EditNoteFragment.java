@@ -1,5 +1,6 @@
 package com.subba.clipboardmanager.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,10 +32,17 @@ public class EditNoteFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         Bundle value = getArguments();
         mNote = (ClipboardItem) value.getSerializable("note");
         mToolbar = getActivity().findViewById(R.id.toolbar);
 
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putString("editText", mEditText.getText().toString());
+        super.onSaveInstanceState(outState);
     }
 
     @Nullable
@@ -42,7 +50,11 @@ public class EditNoteFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.edit_note_fragment_layout, null);
         mEditText = view.findViewById(R.id.note_edit_text);
-        mEditText.setText(mNote.getText(), TextView.BufferType.EDITABLE);
+        if(savedInstanceState != null){
+            mEditText.setText(savedInstanceState.getString("editText"), TextView.BufferType.EDITABLE);
+        }else{
+            mEditText.setText(mNote.getText(), TextView.BufferType.EDITABLE);
+        }
         return view;
     }
 
@@ -59,22 +71,48 @@ public class EditNoteFragment extends Fragment {
             case R.id.save_note:
                 Log.d(TAG, "onOptionsItemSelected: options clicked");
                 saveChanges();
-                break;
+                return true;
+            case R.id.note_share:
+                createShareSheet();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
+
     }
+
 
     public void saveChanges(){
         String changedText = mEditText.getText().toString();
-        if(changedText.equals(mNote)){
+        if(changedText.equals(mNote.getText())){
             return;
         }else{
-            mNote.setText(changedText);
-            MainActivity.viewModel.update(mNote);
-            Toast.makeText(getActivity(), R.string.note_updated, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "saveChanges: " + mNote.getClipId());
+            if(mNote.getClipId() == 0){
+                mNote.setText(changedText);
+                MainActivity.viewModel.insert(mNote);
+                Toast.makeText(getActivity(), R.string.note_added, Toast.LENGTH_SHORT).show();
+            }else{
+                mNote.setText(changedText);
+                MainActivity.viewModel.update(mNote);
+                Toast.makeText(getActivity(), R.string.note_updated, Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
+    private void createShareSheet(){
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, mNote.getText());
+        sendIntent.setType("text/plain");
+
+        Intent shareIntent = Intent.createChooser(sendIntent, null);
+        startActivity(shareIntent);
+
+    }
+
+
 
 
 }

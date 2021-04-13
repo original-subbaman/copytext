@@ -2,7 +2,6 @@ package com.subba.clipboardmanager.Fragments;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,11 +22,12 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.subba.clipboardmanager.Activities.MainActivity;
 import com.subba.clipboardmanager.Activities.NotesActivity;
 import com.subba.clipboardmanager.R;
+import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
 import com.subba.clipboardmanager.Room.Entity.Folder;
 
 import static com.subba.clipboardmanager.Activities.MainActivity.mFolderList;
 
-public class DisplayClipsFragment extends Fragment {
+public class ClipListFragment extends Fragment {
 
     private int folderId;
     @Override
@@ -66,6 +66,9 @@ public class DisplayClipsFragment extends Fragment {
                 return true;
             case R.id.edit_title:
                 createRenameFolderDialog();
+                return true;
+            case R.id.add_note:
+                openEditFragment();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -152,6 +155,11 @@ public class DisplayClipsFragment extends Fragment {
                 break;
             }
         }
+    }
+
+    public void openEditFragment(){
+        ClipboardItem newNote = new ClipboardItem(folderId);
+        ((NotesActivity) getActivity()).replaceCurrentFragmentWith(NotesActivity.EDIT_CLIPS_FRAGMENT, newNote);
     }
 
 }

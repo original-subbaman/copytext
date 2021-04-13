@@ -4,7 +4,9 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,12 +15,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,9 +32,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.snackbar.Snackbar;
 import com.subba.clipboardmanager.Adapters.FoldersRecyclerAdapter;
 import com.subba.clipboardmanager.R;
 import com.subba.clipboardmanager.Room.Entity.ClipboardItem;
@@ -49,7 +58,8 @@ import eu.davidea.flexibleadapter.items.IFlexible;
 
 public class MainActivity extends AppCompatActivity implements ActionMode.Callback,
         FlexibleAdapter.OnItemLongClickListener,
-        FlexibleAdapter.OnItemClickListener {
+        FlexibleAdapter.OnItemClickListener,
+        SearchView.OnQueryTextListener{
     public static final String TAG = "Clip";
 
     private ActivityMainBinding binding;
@@ -63,10 +73,11 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     public static RoomViewModel viewModel;
     public static List<Folder> mFolderList;
     private static List<Integer> mViewPositionList;
-    private String currentFolder = "Other";
     private Toolbar toolbar;
     private ActionMode mActionMode;
     private Intent serviceIntent;
+    private SearchView mSearchView;
+    private ClipboardItem mDeletedClip;
     private LayoutAnimationController mAnimationController;
 
 
@@ -86,13 +97,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
         toolbar = findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
 
         serviceIntent = new Intent(this, ClipboardMonitorService.class);
         serviceIntent.setAction(ClipboardMonitorService.ACTION_START_FOREGROUND_SERVICE);
         viewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication())).get(RoomViewModel.class);
         setUpNavigationDrawer();
         setClickListenerForButtons();
+        setListenerForCollapsibleToolbar();
     }
 
     @Override
@@ -130,12 +141,17 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
         viewModel.getClipsFromFolder("Recent").observe(this, folderWithClips -> {
             mClips.clear();
-            Log.d(TAG, "setUpRoomObservers: cc");
             for (FolderWithClips clips : folderWithClips) {
                 mClips.addAll(clips.clips);
             }
             mClipAdapter.updateDataSet(mClips);
-
+            if(mClipAdapter.getItemCount() == 0){
+                setVisibility(mClipsRecyclerView, View.GONE);
+                setVisibility(binding.emptyView, View.VISIBLE);
+            }else{
+                setVisibility(mClipsRecyclerView, View.VISIBLE);
+                setVisibility(binding.emptyView, View.GONE);
+            }
         });
 
         viewModel.getFolderListAsLiveData().observe(this, folders -> {
@@ -176,14 +192,58 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
         mClipsRecyclerViewLayoutManager = new LinearLayoutManager(this);
         mClipsRecyclerView.setHasFixedSize(true);
+
         mAnimationController = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_anim_drop_from_top);
         mClipsRecyclerView.setLayoutAnimation(mAnimationController);
+
         mClipAdapter = new FlexibleAdapter<>(mClips);
         mClipsRecyclerView.setAdapter(mClipAdapter);
         mClipsRecyclerView.setLayoutManager(mClipsRecyclerViewLayoutManager);
         mClipAdapter.addListener(this);
 
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(mClipsRecyclerView);
+
     }
+
+    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+            final int position = viewHolder.getAdapterPosition();
+
+            switch (direction){
+                case ItemTouchHelper.RIGHT:
+                    mDeletedClip = (ClipboardItem) mClips.get(position);
+                    mClipAdapter.removeItem(position);
+                    Snackbar.make(mClipsRecyclerView, "Delete", Snackbar.LENGTH_LONG)
+                            .setAction("Undo", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mClips.add(position, mDeletedClip);
+                                    mClipAdapter.addItem(position, mDeletedClip);
+                                }
+                            })
+                            .addCallback(new Snackbar.Callback(){
+                                @Override
+                                public void onDismissed(Snackbar transientBottomBar, int event) {
+                                    if(event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT){
+                                        viewModel.delete(mDeletedClip);
+                                    }
+                                }
+                            })
+
+                            .show();
+                    break;
+            }
+        }
+
+    };
 
     private void setClickListenerForButtons() {
         //Clear button
@@ -195,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 mClipAdapter.clear();
                 mClipsRecyclerView.scheduleLayoutAnimation();
                 clearClipsFromRecent();
-
             }
         });
     }
@@ -218,6 +277,30 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         mFolderRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mFolderRecyclerView.setAdapter(mFolderAdapter);
     }
+
+    private void setListenerForCollapsibleToolbar(){
+        final CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsible_toolbar);
+        AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout);
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            boolean isShow = true;
+            int scrollRange = -1;
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if(scrollRange == -1){
+                    scrollRange = appBarLayout.getTotalScrollRange();
+                }
+                if(scrollRange + verticalOffset == 0){
+                    collapsingToolbarLayout.setTitle(getResources().getString(R.string.app_name));
+                    isShow = true;
+                } else if(isShow){
+                    collapsingToolbarLayout.setTitle(" ");
+                    isShow = false;
+                }
+            }
+        });
+    }
+
     /*
     * Room database operation
     * */
@@ -237,16 +320,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.options_menu, menu);
 
-        //Search
-        SearchManager searchManager =
-                null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        }
-        SearchView searchView =
-                (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
+        initSearchView(menu);
 
         return true;
     }
@@ -278,10 +352,28 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             toggleSelection(position);
             return true;
         } else {
+            showClipDialog(position);
             return false;
         }
 
 
+    }
+
+    public void showClipDialog(int position){
+        ClipboardItem selectedItem = (ClipboardItem) mClips.get(position);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        View view = LayoutInflater.from(this).inflate(R.layout.show_clip_dialog, null);
+        builder.setCancelable(true);
+        builder.setView(view);
+
+        ((TextView) view.findViewById(R.id.clip_time)).setText("Copied on: " + selectedItem.getTime());
+        ((TextView) view.findViewById(R.id.clip_text)).setText(selectedItem.getText());
+
+        final AlertDialog showClipDialog = builder.create();
+
+        showClipDialog.getWindow().getAttributes().windowAnimations = R.style.AlertDialogAnimation;
+        showClipDialog.show();
     }
 
     /*
@@ -400,22 +492,36 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         if (folderName.length() == 0) {
                             Toast.makeText(MainActivity.this, R.string.empty_input, Toast.LENGTH_SHORT).show();
                         } else {
-                            Folder newFolder = new Folder(folderName);
-                            viewModel.insert(newFolder);
-                            List<ClipboardItem> selectedItems = getSelectedItems();
-                            for (ClipboardItem item : selectedItems) {
-                                item.setFolderId(newFolder.getFolderId());
-                                Log.d(TAG, "onClick: folder id " + newFolder.getFolderId());
-                                viewModel.update(item);
+                            boolean isFolderExist = false;
+                            //check if folder already exists in data
+                            for(Folder folder : mFolderList){
+                                if(folder.getFolderName().toLowerCase().equals(folderName.toLowerCase())){
+                                    isFolderExist = true;
+                                    break;
+                                }
                             }
 
-                            if (mActionMode != null) {
-                                mActionMode.finish();
-                            } else {
-                                mClipAdapter.clearSelection();
-                            }
+                            if(isFolderExist){
+                                Toast.makeText(MainActivity.this, R.string.folder_exists, Toast.LENGTH_LONG).show();
+                            }else{
 
-                            dialog.dismiss();
+                                Folder newFolder = new Folder(folderName);
+
+                                viewModel.insert(newFolder);
+                                List<ClipboardItem> selectedItems = getSelectedItems();
+                                for (ClipboardItem item : selectedItems) {
+                                    item.setFolderId(newFolder.getFolderId());
+                                    viewModel.update(item);
+                                }
+
+                                if (mActionMode != null) {
+                                    mActionMode.finish();
+                                } else {
+                                    mClipAdapter.clearSelection();
+                                }
+
+                                dialog.dismiss();
+                            }
 
                         }
                     }
@@ -479,4 +585,33 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
 
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return onQueryTextChange(query);
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if(mClipAdapter.hasNewFilter(newText)){
+            mClipAdapter.setFilter(newText);
+            mClipAdapter.filterItems();
+        }
+        return true;
+    }
+
+    private void initSearchView(final Menu menu){
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        MenuItem searchItem = menu.findItem(R.id.search);
+        if(searchItem != null) {
+            mSearchView = (SearchView) searchItem.getActionView();
+            mSearchView.setInputType(InputType.TYPE_TEXT_VARIATION_FILTER);
+            mSearchView.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_FULLSCREEN);
+            mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            mSearchView.setOnQueryTextListener(this);
+        }
+    }
+
+    private void setVisibility(View view, int visible){
+        view.setVisibility(visible);
+    }
 }

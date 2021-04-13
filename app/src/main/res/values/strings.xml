@@ -26,4 +26,11 @@
     <string name="today">today</string>
     <string name="clear">Clear</string>
     <string name="note_updated">Note updated</string>
+    <string name="note_added">"Note inserted "</string>
+    <string name="recent_copied_text">Recent copied text will show here \n Swipe left to delete a clip</string>
+    <string name="undo">Undo</string>
+    <string name="empty_list">No recent copied text</string>
+
+    <string name="folders">All \nFolders</string>
+    <string name="folder_exists">Folder of this name already exits</string>
 </resources>

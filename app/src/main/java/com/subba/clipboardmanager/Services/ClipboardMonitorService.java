@@ -109,10 +109,10 @@ public class ClipboardMonitorService extends Service {
         String currentTime = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm aa");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMM d, ''yy");
             currentTime = simpleDateFormat.format(calendar.getTime());
         }else{
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm aa");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMM d, ''yy");
             currentTime = simpleDateFormat.format(new Date());
         }
 

@@ -3,8 +3,8 @@
 
     <style name="Theme.ClipBoardManager" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -16,9 +16,18 @@
         <item name="actionModeBackground">@color/lg_blue_500</item>
         <item name="windowActionModeOverlay">true</item>
         <!-- Customize your theme here. -->
-
+        <item name="android:textViewStyle">@style/TextViewOpenSans</item>
+        <item name="android:editTextStyle">@style/EditTextOpenSans</item>
         <item name="android:selectableItemBackground">@drawable/selector_item_light</item>
 
+    </style>
+
+    <style name="TextViewOpenSans" parent="android:Widget.TextView">
+        <item name="fontFamily">@font/lato</item>
+    </style>
+
+    <style name="EditTextOpenSans" parent="android:Widget.EditText">
+        <item name="android:fontFamily">@font/lato</item>
     </style>
 
     <style name="AlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">

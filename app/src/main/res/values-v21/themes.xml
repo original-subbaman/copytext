@@ -16,9 +16,18 @@
         <item name="actionModeBackground">@color/purple_500</item>
         <item name="windowActionModeOverlay">true</item>
         <!-- Customize your theme here. -->
-
+        <item name="android:textViewStyle">@style/TextViewOpenSans</item>
+        <item name="android:editTextStyle">@style/EditTextOpenSans</item>
         <item name="selectableItemBackground">@drawable/card_selected_background</item>
         <item name="android:windowContentTransitions">true</item>
+    </style>
+
+    <style name="TextViewOpenSans" parent="android:Widget.TextView">
+        <item name="fontFamily">@font/lato</item>
+    </style>
+
+    <style name="EditTextOpenSans" parent="android:Widget.EditText">
+        <item name="android:fontFamily">@font/lato</item>
     </style>
 
     <style name="AlertDialogAnimation">

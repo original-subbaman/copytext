@@ -5,6 +5,8 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import java.util.Objects;
+
 @Entity(tableName="folder_table")
 public class Folder{
     @PrimaryKey
@@ -40,4 +42,5 @@ public class Folder{
         double a = Math.random() * (100 + 1);
         return (int) a;
     }
+
 }
