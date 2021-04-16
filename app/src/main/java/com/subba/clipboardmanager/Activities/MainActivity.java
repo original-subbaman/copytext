@@ -121,12 +121,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         App.setContext(null);
@@ -222,12 +216,9 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                     mDeletedClip = (ClipboardItem) mClips.get(position);
                     mClipAdapter.removeItem(position);
                     Snackbar.make(mClipsRecyclerView, "Delete", Snackbar.LENGTH_LONG)
-                            .setAction("Undo", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    mClips.add(position, mDeletedClip);
-                                    mClipAdapter.addItem(position, mDeletedClip);
-                                }
+                            .setAction("Undo", v -> {
+                                mClips.add(position, mDeletedClip);
+                                mClipAdapter.addItem(position, mDeletedClip);
                             })
                             .addCallback(new Snackbar.Callback(){
                                 @Override
@@ -247,31 +238,30 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     private void setClickListenerForButtons() {
         //Clear button
-        binding.clearClipsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mAnimationController = AnimationUtils.loadLayoutAnimation(MainActivity.this, R.anim.layout_fade_from_top);
-                mClipsRecyclerView.setLayoutAnimation(mAnimationController);
-                mClipAdapter.clear();
-                mClipsRecyclerView.scheduleLayoutAnimation();
-                clearClipsFromRecent();
-            }
+        binding.clearClipsBtn.setOnClickListener(v -> {
+            mAnimationController = AnimationUtils.loadLayoutAnimation(MainActivity.this, R.anim.layout_fade_from_top);
+            mClipsRecyclerView.setLayoutAnimation(mAnimationController);
+            mClipAdapter.clear();
+            mClipsRecyclerView.scheduleLayoutAnimation();
+            clearClipsFromRecent();
+        });
+
+        binding.reportBtn.setOnClickListener(v -> {
+            Intent reportActivityIntent = new Intent(MainActivity.this, GuideActivity.class);
+            startActivity(reportActivityIntent);
         });
     }
 
     private void setUpFoldersRecyclerView() {
         mFolderAdapter = new FoldersRecyclerAdapter();
-        mFolderAdapter.setOnItemClickListener(new FoldersRecyclerAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                Intent intent = new Intent(MainActivity.this, NotesActivity.class);
-                String folderName = mFolderList.get(position).getFolderName();
-                int folderId = mFolderList.get(position).getFolderId();
-                intent.putExtra("folderName", folderName);
-                intent.putExtra("folderId", folderId);
-                startActivity(intent);
-                binding.drawerLayout.closeDrawer(GravityCompat.START, false);
-            }
+        mFolderAdapter.setOnItemClickListener(position -> {
+            Intent intent = new Intent(MainActivity.this, NotesActivity.class);
+            String folderName = mFolderList.get(position).getFolderName();
+            int folderId = mFolderList.get(position).getFolderId();
+            intent.putExtra("folderName", folderName);
+            intent.putExtra("folderId", folderId);
+            startActivity(intent);
+            binding.drawerLayout.closeDrawer(GravityCompat.START, false);
         });
         mFolderRecyclerView.setHasFixedSize(true);
         mFolderRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -367,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         builder.setCancelable(true);
         builder.setView(view);
 
-        ((TextView) view.findViewById(R.id.clip_time)).setText("Copied on: " + selectedItem.getTime());
+        ((TextView) view.findViewById(R.id.clip_time)).setText(selectedItem.getTime());
         ((TextView) view.findViewById(R.id.clip_text)).setText(selectedItem.getText());
 
         final AlertDialog showClipDialog = builder.create();
@@ -450,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     private void setContextTitle(int count) {
-        mActionMode.setTitle(String.valueOf(count) + " " + (count == 1 ?
+        mActionMode.setTitle(count + " " + (count == 1 ?
                 getString(R.string.action_selected_one) :
                 getString(R.string.action_selected_many)));
     }
@@ -476,54 +466,46 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
         EditText editText = customDialogView.findViewById(R.id.rename_folder_edit_text);
         ((TextView) customDialogView.findViewById(R.id.dialog_title_text_view)).setText(R.string.new_folder);
-        ((Button) customDialogView.findViewById(R.id.cancel_dialog_button)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        ((Button) customDialogView.findViewById(R.id.cancel_dialog_button)).setOnClickListener((View.OnClickListener) v -> dialog.dismiss());
 
         ((Button) customDialogView.findViewById(R.id.positive_dialog_button)).setText(R.string.add);
         ((Button) customDialogView.findViewById(R.id.positive_dialog_button))
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String folderName = editText.getText().toString();
-                        if (folderName.length() == 0) {
-                            Toast.makeText(MainActivity.this, R.string.empty_input, Toast.LENGTH_SHORT).show();
-                        } else {
-                            boolean isFolderExist = false;
-                            //check if folder already exists in data
-                            for(Folder folder : mFolderList){
-                                if(folder.getFolderName().toLowerCase().equals(folderName.toLowerCase())){
-                                    isFolderExist = true;
-                                    break;
-                                }
+                .setOnClickListener((View.OnClickListener) v -> {
+                    String folderName = editText.getText().toString();
+                    if (folderName.length() == 0) {
+                        Toast.makeText(MainActivity.this, R.string.empty_input, Toast.LENGTH_SHORT).show();
+                    } else {
+                        boolean isFolderExist = false;
+                        //check if folder already exists in data
+                        for(Folder folder : mFolderList){
+                            if(folder.getFolderName().toLowerCase().equals(folderName.toLowerCase())){
+                                isFolderExist = true;
+                                break;
                             }
-
-                            if(isFolderExist){
-                                Toast.makeText(MainActivity.this, R.string.folder_exists, Toast.LENGTH_LONG).show();
-                            }else{
-
-                                Folder newFolder = new Folder(folderName);
-
-                                viewModel.insert(newFolder);
-                                List<ClipboardItem> selectedItems = getSelectedItems();
-                                for (ClipboardItem item : selectedItems) {
-                                    item.setFolderId(newFolder.getFolderId());
-                                    viewModel.update(item);
-                                }
-
-                                if (mActionMode != null) {
-                                    mActionMode.finish();
-                                } else {
-                                    mClipAdapter.clearSelection();
-                                }
-
-                                dialog.dismiss();
-                            }
-
                         }
+
+                        if(isFolderExist){
+                            Toast.makeText(MainActivity.this, R.string.folder_exists, Toast.LENGTH_LONG).show();
+                        }else{
+
+                            Folder newFolder = new Folder(folderName);
+
+                            viewModel.insert(newFolder);
+                            List<ClipboardItem> selectedItems = getSelectedItems();
+                            for (ClipboardItem item : selectedItems) {
+                                item.setFolderId(newFolder.getFolderId());
+                                viewModel.update(item);
+                            }
+
+                            if (mActionMode != null) {
+                                mActionMode.finish();
+                            } else {
+                                mClipAdapter.clearSelection();
+                            }
+
+                            dialog.dismiss();
+                        }
+
                     }
                 });
 

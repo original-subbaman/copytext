@@ -77,8 +77,10 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
         } else {
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
+                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                     .replace(R.id.notes_fragment_container, fragment, String.valueOf(currentFragment))
                     .commit();
+
 
         }
 
@@ -136,6 +138,7 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
                 ClipListFragment clipListFragment = new ClipListFragment();
                 getSupportFragmentManager().beginTransaction()
                         .setReorderingAllowed(true)
+                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                         .addToBackStack("display_note")
                         .replace(R.id.notes_fragment_container, clipListFragment, String.valueOf(currentFragment))
                         .commit();
@@ -150,6 +153,7 @@ public class NotesActivity extends AppCompatActivity implements FlexibleAdapter.
                 getSupportFragmentManager()
                         .beginTransaction()
                         .setReorderingAllowed(true)
+                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                         .addToBackStack("edit_note")
                         .replace(R.id.notes_fragment_container, editNoteFragment, String.valueOf(currentFragment))
                         .commit();

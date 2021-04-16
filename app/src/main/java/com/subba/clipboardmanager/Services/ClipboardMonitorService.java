@@ -27,14 +27,9 @@ public class ClipboardMonitorService extends Service {
 
     private static final String TAG = "ClipboardMonitorService";
     private ClipboardManager mClipboardManager;
-    private static final String NOTIFICATION_TITLE_SERVICE_START = "CopyPaste is running in the background";
-    private static final String NOTIFICATION_CONTENT_SERVICE_START = "Copy any text and have it saved to the app automatically.";
-    private static final String NOTIFICATION_TITLE_SERVICE_STOP = "CopyPaste has stopped working";
-
     public static final String ACTION_STOP_FOREGROUND_SERVICE = "ACTION_STOP_FOREGROUND_SERVICE";
     public static final String ACTION_START_FOREGROUND_SERVICE = "ACTION_START_FOREGROUND_SERVICE";
 
-    private NotificationManagerCompat mNotificationManager;
     private ClipboardItem previousItem = null;
 
     @Nullable
@@ -48,16 +43,13 @@ public class ClipboardMonitorService extends Service {
 
         if(intent != null){
             String action = intent.getAction();
-            Log.d(TAG, "onStartCommand: " + action);
             switch(action){
                 case ACTION_START_FOREGROUND_SERVICE:
-                    Log.d(TAG, "onStartCommand: foreground started");
                     mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     mClipboardManager.addPrimaryClipChangedListener(mOnPrimaryClipChangedListener);
-                    createNotificationWithMessage(NOTIFICATION_TITLE_SERVICE_START, NOTIFICATION_CONTENT_SERVICE_START);
+                    createNotificationWithMessage(getResources().getString(R.string.notification_title), getResources().getString(R.string.notification_content));
                     break;
                 case ACTION_STOP_FOREGROUND_SERVICE:
-                    Log.d(TAG, "onStartCommand: foreground stopped");
                     stopForeground(true);
                     stopSelf();
                     break;
@@ -79,7 +71,6 @@ public class ClipboardMonitorService extends Service {
         super.onDestroy();
         if(mClipboardManager != null){
             mClipboardManager.removePrimaryClipChangedListener(mOnPrimaryClipChangedListener);
-            createNotificationWithMessage(NOTIFICATION_TITLE_SERVICE_STOP, NOTIFICATION_TITLE_SERVICE_STOP);
         }
     }
 
