@@ -85,7 +85,7 @@ public class ClipboardMonitorService extends Service {
         PendingIntent btPendingIntent = PendingIntent.getService(this, 0, stopIntent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, App.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_android_black_24dp)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(description)
                 .setContentIntent(contentIntent)
